@@ -775,6 +775,10 @@ type PrometheusRemoteBackendEndpointConfiguration struct {
 type PrometheusRemoteBackendStoragePolicyConfiguration struct {
 	Resolution time.Duration `yaml:"resolution" validate:"nonzero"`
 	Retention  time.Duration `yaml:"retention" validate:"nonzero"`
+
+	// Downsample is the configuration for downsampling options to use with
+	// the namespace.
+	Downsample *m3.DownsampleClusterStaticNamespaceConfiguration `yaml:"downsample"`
 }
 
 // HTTPConfiguration is the HTTP configuration for configuring
