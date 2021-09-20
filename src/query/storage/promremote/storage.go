@@ -89,7 +89,6 @@ func (p *promStorage) Write(ctx context.Context, query *storage.WriteQuery) erro
 			atLeastOneEndpointMatched = true
 			go func() {
 				defer wg.Done()
-				p.logger.Info("sending metric to endpoint", zap.String("name", endpoint.name))
 				err := p.writeSingle(ctx, metrics, endpoint.address, bytes.NewBuffer(encoded))
 				if err != nil {
 					errLock.Lock()
