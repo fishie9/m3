@@ -29,35 +29,46 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewCoordinator(t *testing.T) {
-	coord, err := NewCoordinatorFromYAML(defaultCoordConfig, CoordinatorOptions{})
+func TestNewAggregator(t *testing.T) {
+	_, nodeCloser := setupNode(t)
+	defer nodeCloser()
+
+	agg, err := NewAggregator(defaultAggregatorConfig, AggregatorOptions{})
 	require.NoError(t, err)
-	require.NoError(t, coord.Close())
+
+	require.NoError(t, agg.Close())
 }
 
-func TestCreateAnotherCoordinatorInProcess(t *testing.T) {
-	coord, err := NewCoordinatorFromYAML(defaultCoordConfig, CoordinatorOptions{})
-	require.NoError(t, err)
-	require.NoError(t, coord.Close())
-}
-
-// TODO(nate): add more tests exercising other endpoints once dbnode impl is landed
-
-const defaultCoordConfig = `
-clusters:
-  - namespaces:
-      - namespace: default
-        type: unaggregated
-        retention: 1h
-    client:
-      config:
-        service:
-          env: default_env
-          zone: embedded
-          service: m3db
-          cacheDir: "*"
-          etcdClusters:
-            - zone: embedded
-              endpoints:
-                - 127.0.0.1:2379
+const defaultAggregatorConfig = `
+kvClient:
+  etcd:
+    env: default_env
+    zone: embedded
+    service: m3db
+    cacheDir: "*"
+    etcdClusters:
+      - zone: embedded
+        endpoints:
+        - 127.0.0.1:2379
+aggregator:
+  client:
+    type: m3msg
+    m3msg:
+      producer:
+        writer:
+          topicName: test
+          topicServiceOverride:
+            zone: embedded
+            environment: default_env/test
+          placement:
+            isStaged: true
+          placementServiceOverride:
+            namespaces:
+              placement: /placement
+          messagePool:
+            size: 16384
+            watermark:
+              low: 0.2
+              high: 0.5
+          ignoreCutoffCutover: true
 `
